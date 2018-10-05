@@ -2,9 +2,10 @@ package app.controllers;
 
 public class UserDto {
 
-	private String username;
 	private String email;
 	private String name;
+	private String qt;
+	private String username;
 
 	public UserDto() {
 	}
@@ -31,6 +32,14 @@ public class UserDto {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getQt() {
+		return qt;
+	}
+
+	public void setQt(String qt) {
+		this.qt = qt;
 	}
 
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,6 +27,8 @@ import com.amazonaws.services.cognitoidp.model.AdminGetUserRequest;
 import com.amazonaws.services.cognitoidp.model.AdminGetUserResult;
 import com.amazonaws.services.cognitoidp.model.AdminInitiateAuthRequest;
 import com.amazonaws.services.cognitoidp.model.AdminInitiateAuthResult;
+import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesRequest;
+import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesResult;
 import com.amazonaws.services.cognitoidp.model.AttributeType;
 import com.amazonaws.services.cognitoidp.model.AuthFlowType;
 import com.amazonaws.services.cognitoidp.model.ListUsersRequest;
@@ -43,6 +46,23 @@ public class MainController {
 		AWSCredentialsProvider provider = new AWSStaticCredentialsProvider(credentials);
 		return AWSCognitoIdentityProviderClientBuilder.standard().withCredentials(provider)
 				.withRegion("us-west-2").build();
+	}
+	
+	@PutMapping("{username}") 
+	Object update(@PathVariable String username, @RequestBody UserDto dto) {
+		
+		AttributeType att = new AttributeType()
+				.withName("custom:qt")
+				.withValue(dto.getQt());
+		
+		AdminUpdateUserAttributesRequest request = new AdminUpdateUserAttributesRequest()
+				.withUserAttributes(att)
+				.withUsername(username)
+				.withUserPoolId(poolId);
+		
+		AdminUpdateUserAttributesResult result = getAWSCognitoClient().adminUpdateUserAttributes(request); 
+		return result;
+				
 	}
 	
 	@PostMapping("/login")
@@ -82,17 +102,9 @@ public class MainController {
 		
 		List<AttributeType> userAttributes = new ArrayList<AttributeType>();
 		
-		AttributeType attName = new AttributeType();
-		attName.setName("name");
-		attName.setValue(userDto.getName());
-		
-		AttributeType attEmail = new AttributeType();
-		attEmail.setName("email");
-		attEmail.setValue(userDto.getEmail());
-		
-		userAttributes.add(attName);
-		userAttributes.add(attEmail);
-		userAttributes.add(new AttributeType().withName("custom:qt").withValue("123"));
+		userAttributes.add(new AttributeType().withName("email").withValue(userDto.getEmail()));
+		userAttributes.add(new AttributeType().withName("name").withValue(userDto.getName()));
+		userAttributes.add(new AttributeType().withName("custom:qt").withValue(userDto.getQt()));
 		
 		createUserRequest.setUserAttributes(userAttributes);
 		AdminCreateUserResult createResult = getAWSCognitoClient().adminCreateUser(createUserRequest);
